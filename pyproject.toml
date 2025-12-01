@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flower_market_ai"
+version = "0.1.0"
+description = "Flower market data cleaning, forecasting and procurement decision system."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Your Name", email = "you@example.com" },
+]
+
+# 🔹 这里是“唯一真相”：所有运行需要的依赖都写在这里
+dependencies = [
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "psycopg2-binary>=2.9.11",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.3.0",
+    "python-dotenv>=1.0.0",
+    "scikit-learn>=1.4.0",
+    "lightgbm>=4.5.0",
+#    "xgboost>=2.0.0",
+    "tqdm>=4.66.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+]
+
+[project.optional-dependencies]
+# 开发环境才需要的工具：格式化、静态检查、测试等
+dev = [
+    "pytest>=8.0.0",
+    "black>=24.4.0",
+    "ruff>=0.6.0",
+    "isort>=5.13.0",
+    "pre-commit>=3.8.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
