@@ -16,6 +16,7 @@ Requires-Dist: lightgbm>=4.5.0
 Requires-Dist: tqdm>=4.66.0
 Requires-Dist: fastapi>=0.115.0
 Requires-Dist: uvicorn[standard]>=0.30.0
+Requires-Dist: matplotlib>=3.8.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.0.0; extra == "dev"
 Requires-Dist: black>=24.4.0; extra == "dev"
@@ -68,7 +69,7 @@ create table market_price (
 
 🎯 模块能力一览（C1 / D / C2 / E / A / B / F）
 步骤	模块	能力简介
-C1	初步清洗（preliminary_cleaning）	检查硬错误：价格 ≤0、volume<0、缺关键信息的“垃圾数据”等
+C1	初步清洗（preliminary_cleaning）	检查硬错误：价格 ≤0、volume<0、缺关键信息的“垃圾数据”等   python -m src.data_processing.preliminary_cleaning.run
 D	缺失补全（missing_value_filling）	对缺失日期、缺失价格/成交量进行智能补全（模型 + 规则）
 C2	精细异常检测（outlier_detection）	基于完整时间序列的价格异常识别：孤立森林、3σ、上下游对比
 E	价格指数（basic_analysis/price_index）	构建全市场/分市场/分品类价格指数与波动率
@@ -194,9 +195,11 @@ flower_market_ai/
 └── .github/
     └── workflows/
         └── ci.yml
-        
+
+将原始数据库中的数据导入到fm_market_price  
  python -m src.utils.migrate_to_fm_market_price
- 
+ 开始C1初步数据清洗
+ python -m src.data_processing.preliminary_cleaning.run
 ⚙️ 快速开始（Quick Start）
 1. 克隆项目
 bash

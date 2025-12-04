@@ -1,21 +1,45 @@
 # Windows 系统文件
 Thumbs.db
 Desktop.ini
+
 # Python 虚拟环境
 venv/
+
 # 日志文件
 logs/
+
 # 敏感配置
 .env
+
 # Python 缓存
 __pycache__/
 *.pyc
 *.pyo
-# IDE 配置（VS Code/IDEA 等）
+
+# IDE 配置 (VS Code/IDEA 等)
 .vscode/
 .idea/
+
 # 大文件（按需保留/注释）
 # data/
 # *.csv
 data/processed/*.csv
 data/*.csv
+
+# --------------------------------------------------------------------
+# 通用数据 / 模型产物：不上传到仓库（可本地/CI 重新生成）
+# --------------------------------------------------------------------
+
+# 所有 CSV 数据文件
+*.csv
+
+# 所有 PDF 报告文件
+*.pdf
+
+# 模型文件
+*.pkl
+*.pickle
+*.joblib
+
+# JSON 产物（模型元数据 / 指标输出等）
+*.json
