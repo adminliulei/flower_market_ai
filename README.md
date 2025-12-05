@@ -303,8 +303,17 @@ python -m src.prediction_models.short_term_price_pred.model_predict
 python -m src.prediction_models.common.model_evaluation
 
 # 7. B：成交量预测（预留/可按同样模式接入）
-python -m src.prediction_models.volume_pred.model_train
-python -m src.prediction_models.volume_pred.model_predict
+python -m src.prediction_models.short_term_price_pred.model_predict
+将价格预测注入特征（供方案 A 使用）
+python -m src.prediction_models.common.inject_pred_price_feature
+训练成交量模型 A / B
+python -m src.prediction_models.volume_pred.model_train_A
+python -m src.prediction_models.volume_pred.model_train_B
+生成 A / B 验证集预测结果
+python -m src.prediction_models.volume_pred.model_predict_A
+python -m src.prediction_models.volume_pred.model_predict_B
+生成成交量评估 PDF（A/B 各一份）
+python -m src.prediction_models.common.volume_model_evaluation
 
 # 8. F：采购建议生成
 python -m src.business_decision.run

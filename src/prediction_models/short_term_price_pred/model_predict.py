@@ -1,10 +1,10 @@
-# src/prediction_models/short_term_price_pred/model_predict.py
+# src/prediction_models/short_term_price_pred/model_predict_A_old.py
 """
 短期价格预测 - 验证集回测预测脚本
 
 功能：
 1. 读取特征工程输出（time_series_features.csv）
-2. 使用 model_train.py 中的时间序列切分逻辑获取验证集
+2. 使用 model_train_A_old.py 中的时间序列切分逻辑获取验证集
 3. 分别加载 1/2/3 日模型，在验证集上做预测
 4. 输出：data/output/price_prediction_result.csv
     - ts, product_id, variety, ..., horizon, y_true, y_pred, error, abs_error, ape(%)

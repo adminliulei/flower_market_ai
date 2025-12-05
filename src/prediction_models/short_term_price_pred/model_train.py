@@ -1,4 +1,4 @@
-# src/prediction_models/short_term_price_pred/model_train.py
+# src/prediction_models/short_term_price_pred/model_train_A_old.py
 """
 短期价格预测模型训练脚本（时间序列切分版）
 A 步：1/2/3 天价格预测模型训练
