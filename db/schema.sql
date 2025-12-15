@@ -243,6 +243,29 @@ create index if not exists idx_fm_job_log_job_time
 -- schema.sql END
 -- ======================================================================
 
+-- ======================================================================
+-- 7. 测试库存表：fm_inventory_daily_snapshot 测试库存表）
+-- ======================================================================
+CREATE TABLE fm_inventory_daily_snapshot (
+    snapshot_date     date        NOT NULL,
+    product_id        bigint      NOT NULL,
+    variety           text,
+    grade             text,
+    market_name       text,
+    classify_name     text,
+    spec              text,
+    color             text,
+    place             text,
+    shop_name         text,
+    stock_on_hand     numeric     NOT NULL DEFAULT 0,
+    stock_in_transit  numeric     NOT NULL DEFAULT 0,
+    PRIMARY KEY (snapshot_date, product_id, grade, spec, shop_name)
+);
+
+-- ======================================================================
+-- schema.sql END
+-- ======================================================================
+
 drop table fm_market_price;
 
 create table if not exists fm_market_price
@@ -350,3 +373,6 @@ SELECT
     unit,
     ingest_at
 FROM market_price;
+
+
+

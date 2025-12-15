@@ -47,8 +47,8 @@
 | **E**  | `basic_analysis/price_index` | 花价指数：全市场 / 品类 / 品种 VWAP，及指数收益率 |
 | **FE** | `prediction_models/common/feature_engineering` | 特征工程：时间特征、滞后特征、滚动窗口、指数特征、标签构造 |
 | **A**  | `short_term_price_pred` | 短期价格预测：未来 1/2/3 日价格预测（LightGBM） |
-| **B**  | `volume_pred` | 短期成交量预测：未来 1/2/3 日成交量预测（LightGBM） |
-| **F**  | `business_decision` | 动态采购建议：综合 A/B/指数/规则，输出增购/减购/观望建议 |
+| **B**  | `volume_pred` & `volume_pred_A/B` | 短期成交量预测：未来 1/2/3 日成交量预测（方案 A：使用预测价格特征；方案 B：仅历史特征） |
+| **F**  | `business_decision`              | 动态采购建议：综合价格/成交量预测、库存、保鲜期、预算等规则，生成可执行采购清单 + 报表 |
 
 ---
 
@@ -99,9 +99,14 @@ flower_market_ai/
 │   │       └── flower_price_index.csv # E 步输出的多层级花价指数（all/classify/variety）
 │   │
 │   ├── output/                        # 面向业务/前端的最终输出结果
-│   │   ├── price_prediction_result.csv   # A 步：验证集价格预测结果（含 y_true/y_pred）
-│   │   ├── volume_prediction_result.csv  # B 步：验证集成交量预测结果（预留/可扩展）
-│   │   └── procurement_suggestion.csv    # F 步：动态采购建议结果（增购/减购/观望等）
+│   │   ├── price_prediction_result.csv        # A 步：验证集价格预测结果（含 y_true/y_pred/horizon）
+│   │   ├── price_forecast_future.csv          # A 步：基于最新特征的未来价格预测（线上推理）
+│   │   ├── volume_prediction_result_A.csv     # B 方案 A：竖表格式的成交量预测结果（含方案标签）
+│   │   ├── volume_prediction_result_B.csv     # B 方案 B：宽表格式的成交量预测结果
+│   │   ├── volume_model_eval_report.pdf       # B 步：成交量模型 A/B 对比评估报告（PDF）
+│   │   ├── procurement_suggestion.csv         # F 步：机器友好版采购建议明细
+│   │   ├── procurement_summary.xlsx           # F 步：业务友好版采购汇总 & 明细（Excel，多 Sheet）
+│   │   └── procurement_report.pdf             # F 步：管理层视角采购报告（可选，运营周报风格）
 │   │
 │   ├── processed/                     # 清洗链路产物（C1/D/C2）
 │   │   ├── market_price_prelim_clean.csv # C1 初步清洗结果（统一单位、删幽灵字段）
@@ -201,8 +206,9 @@ flower_market_ai/
 │   │
 │   ├── business_decision/           # F 步：业务决策模块
 │   │   ├── __init__.py
-│   │   ├── procurement_core.py      # 采购建议算法（结合预测结果+业务规则）
-│   │   └── run.py                   # 生成采购建议 CSV 的执行入口
+│   │   ├── procurement_core.py      # 采购建议核心算法（需求/库存/保鲜期/预算/价格信号）
+│   │   ├── procurement_report.py    # 采购汇总 & 报表导出（Excel/PDF，业务友好版）
+│   │   └── run.py                   # 生成采购建议（CSV）主入口，串联核心与报表
 │   │
 │   ├── data_processing/             # C1 / D / C2 数据预处理流水线
 │   │   ├── missing_value_filling/
@@ -227,25 +233,27 @@ flower_market_ai/
 │   ├── prediction_models/           # A/B：预测模型相关代码
 │   │   ├── common/                  # 价格 & 成交量模型共用工具
 │   │   │   ├── __init__.py
-│   │   │   ├── behavior_feature_learning.py # 行为特征学习（预留/可扩展）
+│   │   │   ├── behavior_feature_learning.py   # 行为特征学习（预留/可逐步实现）
 │   │   │   ├── data_loader.py       # 加载清洗后数据 & 指数数据
-│   │   │   ├── feature_engineering.py # 特征工程主脚本（FE）
-│   │   │   └── model_evaluation.py  # 模型评估与 PDF 报告生成脚本
+│   │   │   ├── feature_engineering.py # 特征工程主脚本（时间/滞后/滚动/指数等）
+│   │   │   ├── inject_pred_price_feature.py  # 将价格预测结果注入特征矩阵（供量预测方案 A 使用）
+│   │   │   ├── model_evaluation.py  # 价格模型评估与 PDF 报告
+│   │   │   └── volume_model_evaluation.py # 成交量模型 A/B 对比评估与 PDF 报告
 │   │   │
 │   │   ├── short_term_price_pred/   # A 步：短期价格预测模型
 │   │   │   ├── __init__.py
-│   │   │   ├── model_predict.py     # 在验证集上做回测预测，生成 result CSV
-│   │   │   ├── model_predict_future.py # 基于最新特征做“真实未来推理”
-│   │   │   ├── model_train.py       # 价格模型训练脚本（时间切分 + LightGBM）
-│   │   │   └── run.py               # 价格预测一键流程入口（可选）
+│   │   │   ├── model_predict.py
+│   │   │   ├── model_predict_future.py
+│   │   │   ├── model_train.py
+│   │   │   └── run.py
 │   │   │
-│   │   ├── volume_pred/             # B 步：成交量预测模型
+│   │   ├── volume_pred/             # B 步：成交量预测模型（方案 A/B）
 │   │   │   ├── __init__.py
-│   │   │   ├── model_predict.py     # 成交量预测回测脚本
-│   │   │   ├── model_train.py       # 成交量模型训练脚本
-│   │   │   └── run.py               # 成交量预测一键流程入口
-│   │   │
-│   │   └── __init__.py
+│   │   │   ├── model_train_A.py     # 方案 A：使用预测价格特征
+│   │   │   ├── model_train_B.py     # 方案 B：仅历史特征（基线）
+│   │   │   ├── model_predict_A.py   # 方案 A：验证集回测预测
+│   │   │   ├── model_predict_B.py   # 方案 B：验证集回测预测
+│   │   │   └── run.py               # （可选）量预测一键流程入口
 │   │
 │   ├── utils/                       # 通用工具函数
 │   │   ├── __init__.py
@@ -297,27 +305,28 @@ python -m src.basic_analysis.price_index_visual_report
 # 5. 特征工程（Feature Engineering）
 python -m src.prediction_models.common.feature_engineering
 
-# 6. A：短期价格预测（训练 + 回测 + 评估）
+# 6. A：短期价格预测（训练 + 回测 + 评估 + 未来推理）
 python -m src.prediction_models.short_term_price_pred.model_train
 python -m src.prediction_models.short_term_price_pred.model_predict
 python -m src.prediction_models.common.model_evaluation
+python -m src.prediction_models.short_term_price_pred.model_predict_future
 
-# 7. B：成交量预测（预留/可按同样模式接入）
-python -m src.prediction_models.short_term_price_pred.model_predict
-将价格预测注入特征（供方案 A 使用）
+# 7. B：成交量预测（方案 A/B + 评估）
+# 7.1 将价格预测注入特征（供方案 A 使用）
 python -m src.prediction_models.common.inject_pred_price_feature
-训练成交量模型 A / B
+# 7.2 训练成交量模型 A / B
 python -m src.prediction_models.volume_pred.model_train_A
 python -m src.prediction_models.volume_pred.model_train_B
-生成 A / B 验证集预测结果
+# 7.3 生成 A/B 验证集预测结果
 python -m src.prediction_models.volume_pred.model_predict_A
 python -m src.prediction_models.volume_pred.model_predict_B
-生成成交量评估 PDF（A/B 各一份）
+# 7.4 成交量模型评估报告（PDF）
 python -m src.prediction_models.common.volume_model_evaluation
 
-# 8. F：采购建议生成
-python -m src.business_decision.run
-也可以用一条命令跑全流程（视 run_pipeline.py 的配置而定）：
+# 8. F：采购建议生成 + 报表
+python -m src.business_decision.run                  # 生成采购建议 CSV
+python -m src.business_decision.procurement_report   # 生成采购 Excel/PDF 报告
+
 
 bash
 复制代码
